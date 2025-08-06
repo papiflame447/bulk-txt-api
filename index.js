@@ -7,16 +7,25 @@ app.use(express.json());
 app.post('/extract-texts', async (req, res) => {
   const urls = req.body.urls;
   if (!Array.isArray(urls)) {
-    return res.status(400).json({ error: 'Expected "urls" to be an array.' });
+    return res.status(400).json({ error: 'Expected \"urls\" to be an array of objects.' });
   }
 
-  const results = await Promise.all(urls.map(async (url) => {
+  const results = await Promise.all(urls.map(async (entry) => {
+    const txtUrl = entry[".txt"];
     try {
-      const r = await fetch(url);
+      const r = await fetch(txtUrl);
       const text = await r.text();
-      return { url, success: true, content: text };
+      return {
+        ...entry,
+        success: true,
+        content: text
+      };
     } catch (err) {
-      return { url, success: false, error: err.message };
+      return {
+        ...entry,
+        success: false,
+        error: err.message
+      };
     }
   }));
 
